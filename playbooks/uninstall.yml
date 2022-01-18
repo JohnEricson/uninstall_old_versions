@@ -1,0 +1,17 @@
+# Run like this: ansible-playbook uninstall.yml
+#
+# When testing. Restore packages like this:
+#  dnf install adobe-mappings-cmap-20171205-4.fc29.noarch
+- name: Uninstall old versions of Hortonworks/Cloudera software. 
+  hosts: all:localhost
+  become: true
+  vars:
+    versions_to_uninstall:
+      - fc29
+
+  tasks:
+  - name: Uninstall packages
+    yum:
+      name: "adobe-mappings-cmap-20171205-4.{{ item }}*"
+      state: absent  
+    loop: "{{ versions_to_uninstall }}"
