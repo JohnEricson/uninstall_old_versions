@@ -7,6 +7,8 @@
   become: true
   vars:
     packages_to_uninstall:
+      - 'tez'
+      - 'tez_hive2'
       - 'zookeeper'
     versions_to_uninstall:
       - '2_5_3_0_37'
@@ -16,12 +18,19 @@
       - '3_1_5_0_152'
       - '3_1_5_6123_1'
       - '3_1_5_6157_1'
+    packages_and_versions_list: []
 
   tasks:
+  - name: Build list of packages to uninstall
+    set_fact:
+      packages_and_versions_list: "{{ packages_and_versions_list + [ item.0 + '_' + item.1 + '*' ] }}"
+    loop: "{{ packages_to_uninstall|product(versions_to_uninstall)|list }}"
+
+  - name: Print list of packages to uninstall
+    debug:
+      var: packages_and_versions_list
+
   - name: Uninstall packages
     yum:
-      name: "{{ item[0] }}_{{ item[1] }}*"
+      name: "{{ packages_and_versions_list }}*"
       state: absent  
-    with_items: 
-      - "{{ packages_to_uninstall }}"
-      - "{{ versions_to_uninstall }}"
