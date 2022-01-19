@@ -1,14 +1,45 @@
-# Run like this: ansible-playbook -v uninstall.yml
+# Run like this: ansible-playbook uninstall.yml
 #
-# When testing. Restore packages like this:
-#  dnf install -y adobe-mappings-cmap-20171205-4.fc29.noarch
+# Ensure that you are not adding the latest version to list variable versions_to_uninstall.
 - name: Uninstall old versions of Hortonworks/Cloudera software. 
   hosts: all:localhost
   become: true
+  gather_facts: false
   vars:
     packages_to_uninstall:
+      - 'accumulo'
+      - 'avro-doc'
+      - 'avro-libs'
+      - 'avro-tools'
+      - 'atlas-metadata'
+      - 'datafu'
+      - 'druid'
+      - 'gcs'
+      - 'hadoop'
+      - 'hbase-solr'
+      - 'hbase'
+      - 'hive'
+      - 'hive_warehouse_connector'
+      - 'kafka'
+      - 'knox'
+      - 'livy2'
+      - 'oozie'
+      - 'ozone'
+      - 'parquet'
+      - 'phoenix'
+      - 'pig'
+      - 'ranger'
+      - 'search' 
+      - 'shc'
+      - 'solr'
+      - 'spark-atlas-connector'
+      - 'spark2'
+      - 'sqoop'
+      - 'storm'
+      - 'superset'
       - 'tez'
       - 'tez_hive2'
+      - 'zeppelin'
       - 'zookeeper'
     versions_to_uninstall:
       - '2_5_3_0_37'
@@ -26,15 +57,11 @@
       packages_and_versions_list: "{{ packages_and_versions_list + [ item.0 + '_' + item.1 + '*' ] }}"
     loop: "{{ packages_to_uninstall|product(versions_to_uninstall)|list }}"
 
-  - name: Add test package to list
-    set_fact:
-      packages_and_versions_list: "{{ packages_and_versions_list + [ 'adobe-mappings-cmap-20171205-4.fc29*' ] }}"
-
   - name: Print packages to uninstall
     debug:
       var: packages_and_versions_list
 
-  - name: Uninstall packages
-    yum:
-      name: "{{ packages_and_versions_list }}"
-      state: absent  
+  # - name: Uninstall packages
+  #   yum:
+  #     name: "{{ packages_and_versions_list }}"
+  #     state: absent  
