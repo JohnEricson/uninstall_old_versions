@@ -6,12 +6,22 @@
   hosts: all:localhost
   become: true
   vars:
+    packages_to_uninstall:
+      - 'zookeeper'
     versions_to_uninstall:
-      - fc29
+      - '2_5_3_0_37'
+      - '2_6_0_3_8'
+      - '2_6_5_0_292'
+      - '2_6_5_1175_1'
+      - '3_1_5_0_152'
+      - '3_1_5_6123_1'
+      - '3_1_5_6157_1'
 
   tasks:
   - name: Uninstall packages
     yum:
-      name: "adobe-mappings-cmap-20171205-4.{{ item }}*"
+      name: "{{ item[0] }}_{{ item[1] }}*"
       state: absent  
-    loop: "{{ versions_to_uninstall }}"
+    with_items: 
+      - "{{ packages_to_uninstall }}"
+      - "{{ versions_to_uninstall }}"
