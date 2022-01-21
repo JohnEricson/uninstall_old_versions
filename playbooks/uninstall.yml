@@ -6,66 +6,35 @@
   become: true
   gather_facts: false
   vars:
-    packages_to_uninstall:
-      - 'accumulo'
-      - 'avro-doc'
-      - 'avro-libs'
-      - 'avro-tools'
-      - 'atlas-metadata'
-      - 'datafu'
-      - 'druid'
-      - 'gcs'
-      - 'hadoop'
-      - 'hbase-solr'
-      - 'hbase'
-      - 'hive'
-      - 'hive_warehouse_connector'
-      - 'kafka'
-      - 'knox'
-      - 'livy2'
-      - 'oozie'
-      - 'ozone'
-      - 'parquet'
-      - 'phoenix'
-      - 'pig'
-      - 'ranger'
-      - 'search' 
-      - 'shc'
-      - 'solr'
-      - 'spark-atlas-connector'
-      - 'spark2'
-      - 'sqoop'
-      - 'storm'
-      - 'superset'
-      - 'tez'
-      - 'tez_hive2'
-      - 'zeppelin'
-      - 'zookeeper'
-    versions_to_uninstall:
-      - '2_5_3_0_37'
-      - '2_6_0_3_8'
-      - '2_6_5_0_292'
-      - '2_6_5_1175_1'
-      - '3_1_5_0_152'
-      - '3_1_5_6123_1'
-      - '3_1_5_6157_1'
-    packages_and_versions_list: []
+    # Retrieve like this: yum repolist
+    repos_to_uninstall:
+      # Real HDP repos.
+      # - HDP-3.1-repo-201
+      # - HDP-3.1-repo-251
+      # - HDP-3.1-repo-301
+      # - HDP-7.1-repo-351
+      # To test with Docker (https://download.docker.com/linux/centos/docker-ce.repo) and rpmfusion repo.
+      - docker-ce-stable
+      - rpmfusion-free-updates
 
   tasks:
-  - name: Sort list of versions to uninstall
-    set_fact:
-      versions_to_uninstall: "{{ versions_to_uninstall | sort(reverse=True) }}"
-  
-  - name: Build list of packages and versions to uninstall
-    set_fact:
-      packages_and_versions_list: "{{ packages_and_versions_list + [ item.0 + '_' + item.1 + '*' ] }}"
-    loop: "{{ packages_to_uninstall | product(versions_to_uninstall) | list }}"
+  - name: Install yumdb 
+    yum:
+      name: yum-utils
+      state: present
+
+  - name: Get list of installed packages from repo 
+    shell: "yumdb search from_repo repoid '{{ item }}' --noplugins | grep -v '^$' | grep -v '^ ' | sort"
+    changed_when: false
+    register: packages_to_uninstall
+    loop: "{{ repos_to_uninstall }}"
 
   - name: Print packages to uninstall
-    debug:
-      var: packages_and_versions_list
+    debug: 
+      msg: "{{ item.stdout_lines }}"
+    loop: "{{ packages_to_uninstall.results }}"
 
   # - name: Uninstall packages
   #   yum:
-  #     name: "{{ packages_and_versions_list }}"
+  #     name: "{{ packages_to_uninstall.stdout_lines }}"
   #     state: absent  
