@@ -16,7 +16,7 @@
       # To test with Docker (https://download.docker.com/linux/centos/docker-ce.repo) and rpmfusion repo.
       - docker-ce-stable
       - rpmfusion-free-updates
-    all_packages_to_uninstall: []
+    packages_to_uninstall: []
 
   tasks:
   - name: Install yumdb 
@@ -27,24 +27,20 @@
   - name: Get list of installed packages from repos 
     shell: "yumdb search from_repo repoid '{{ item }}' --noplugins | grep -v '^$' | grep -v '^ ' | sort"
     changed_when: false
-    register: packages_to_uninstall
+    register: installed_packages_per_repo 
     loop: "{{ repos_to_uninstall }}"
 
   - name: Create list of packages to uninstall
     set_fact:
-      all_packages_to_uninstall: "{{ all_packages_to_uninstall + [ item.stdout_lines ] | flatten }}"
-    loop: "{{ packages_to_uninstall.results }}"
-
+      packages_to_uninstall: "{{ packages_to_uninstall + [ item.stdout_lines ] | flatten }}"
+    loop: "{{ installed_packages_per_repo.results }}"
 
   - name: Print packages to uninstall
     debug: 
-      msg: "{{ all_packages_to_uninstall }}"
-    #   msg: "{{ item.stdout_lines }}"
-    # loop: "{{ packages_to_uninstall.results }}"
+      msg: "{{ packages_to_uninstall }}"
 
-  # - name: Uninstall packages
-  #   yum:
-  #     name: "{{ item.stdout_lines }}"
-  #     state: absent
-  #     autoremove: yes
-  #   loop: "{{ packages_to_uninstall.results }}"
+  - name: Uninstall packages
+    yum:
+      name: "{{ packages_to_uninstall }}"
+      state: absent
+      autoremove: yes
