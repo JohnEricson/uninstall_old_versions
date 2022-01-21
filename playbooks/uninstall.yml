@@ -9,13 +9,13 @@
   vars:
     repos_to_uninstall:
       # Real HDP repos.
-      # - HDP-3.1-repo-201
-      # - HDP-3.1-repo-251
-      # - HDP-3.1-repo-301
-      # - HDP-7.1-repo-351
-      # To test with Docker (https://download.docker.com/linux/centos/docker-ce.repo) and rpmfusion repo.
-      - docker-ce-stable
-      - rpmfusion-free-updates
+      - HDP-3.1-repo-201
+      - HDP-3.1-repo-251
+      - HDP-3.1-repo-301
+      - HDP-7.1-repo-351
+      # To test with Docker (https://download.docker.com/linux/centos/docker-ce.repo) and rpmfusion repo. See README.md for more info.
+      # - docker-ce-stable
+      # - rpmfusion-free-updates
     packages_to_uninstall: []
 
   tasks:
