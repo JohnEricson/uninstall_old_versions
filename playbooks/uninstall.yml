@@ -1,12 +1,12 @@
 # Run like this: ansible-playbook uninstall.yml
 #
-# Ensure that you are not adding the latest version to list variable versions_to_uninstall.
+# List of repos to add to variable repos_to_uninstall can be found using command:
+# yum repolist
 - name: Uninstall old versions of Hortonworks/Cloudera software. 
   hosts: all:localhost
   become: true
   gather_facts: false
   vars:
-    # Retrieve like this: yum repolist
     repos_to_uninstall:
       # Real HDP repos.
       # - HDP-3.1-repo-201
@@ -16,6 +16,7 @@
       # To test with Docker (https://download.docker.com/linux/centos/docker-ce.repo) and rpmfusion repo.
       - docker-ce-stable
       - rpmfusion-free-updates
+    all_packages_to_uninstall: []
 
   tasks:
   - name: Install yumdb 
@@ -23,18 +24,27 @@
       name: yum-utils
       state: present
 
-  - name: Get list of installed packages from repo 
+  - name: Get list of installed packages from repos 
     shell: "yumdb search from_repo repoid '{{ item }}' --noplugins | grep -v '^$' | grep -v '^ ' | sort"
     changed_when: false
     register: packages_to_uninstall
     loop: "{{ repos_to_uninstall }}"
 
+  - name: Create list of packages to uninstall
+    set_fact:
+      all_packages_to_uninstall: "{{ all_packages_to_uninstall + [ item.stdout_lines ] | flatten }}"
+    loop: "{{ packages_to_uninstall.results }}"
+
+
   - name: Print packages to uninstall
     debug: 
-      msg: "{{ item.stdout_lines }}"
-    loop: "{{ packages_to_uninstall.results }}"
+      msg: "{{ all_packages_to_uninstall }}"
+    #   msg: "{{ item.stdout_lines }}"
+    # loop: "{{ packages_to_uninstall.results }}"
 
   # - name: Uninstall packages
   #   yum:
-  #     name: "{{ packages_to_uninstall.stdout_lines }}"
-  #     state: absent  
+  #     name: "{{ item.stdout_lines }}"
+  #     state: absent
+  #     autoremove: yes
+  #   loop: "{{ packages_to_uninstall.results }}"
